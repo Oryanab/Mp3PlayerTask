@@ -7,10 +7,11 @@ function turnTime (time){
   return `0${Math.floor(time/60)}:${time%60}`
 }
 
-function durationToSeconds(duration) {
-  let mm = duration[0] + duration[1];
-  let ss = duration[3] + duration[4];
-  return secondDuration = (+mm * 60 + +ss);
+
+function minutesToSeconds(duration) {
+  let m = duration[0] + duration[1];
+  let s = duration[3] + duration[4];
+  return finalDuration = (+m * 60 + +s);
 }
 
 const player = {
@@ -120,7 +121,7 @@ let newArr = {
   'title' : title,
   'album': album,
   'artist': artist,
-  'duration': durationToSeconds(duration)
+  'duration': minutesToSeconds(duration)
 }
 
   player.songs.push(newArr)
@@ -235,20 +236,50 @@ function searchByQuery(query) {
   songs = []
   playlists =[]
 for(let i of player.songs){
-    if(i.title.includes(query) || i.album.includes(query) || i.artist.includes(query)){
+    if(i.title.includes(query) || i.album.includes(query) || i.artist.includes(query)|| i.duration.toString().includes(query)){
       songs.push(i);
     }
 }
 for(let n of player.playlists){
-    if(n.name.includes(query)){
+    if(n.name.includes(query) || playlistDuration(n.id).toString().includes(query)){
       playlists.push(n);
     }
 }
-return songs.sort(), playlists.sort()
+for (let title of songs){
+    songs.sort((a,b) => a.title > b.title ? 1 : -1)
+}
+for (let playlist of playlists){
+    playlists.sort((a,b) => a.name > b.name ? 1 : -1)
+}
+
+const results = {songs, playlists}
+return results
+
 }
 
 function searchByDuration(duration) {
-  // your code here
+  let seconds = minutesToSeconds(duration)
+  const allSongDurations = []
+  for(let song of player.songs){
+    allSongDurations.push(song.duration);
+    }
+for(let playlist of player.playlists){
+    allSongDurations.push(playlistDuration(playlist.id))
+}
+    allSongDurations.push(seconds)
+    allSongDurations.sort((a,b)=>a-b)
+   
+    let aboveDuration = allSongDurations[allSongDurations.indexOf(seconds)-1]
+    
+    let belowDuration = allSongDurations[allSongDurations.indexOf(seconds)+1]
+    
+
+
+    if (aboveDuration-seconds<seconds-belowDuration){
+        return searchByQuery(belowDuration).playlists[0] || searchByQuery(belowDuration).songs[0]
+    } else{
+        return searchByQuery(aboveDuration).playlists[0] || searchByQuery(aboveDuration).songs[0]
+    } 
 }
 
 module.exports = {
